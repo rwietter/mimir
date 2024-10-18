@@ -11,8 +11,12 @@ import (
 
 const (
 	CHROME        = "google-chrome"
+	CHROMIUM      = "chromium"
+	FIREFOX       = "firefox"
 	FIREFOX_DEV   = "firefox-developer-edition"
 	BRAVE_NIGHTLY = "brave-browser-nightly"
+	BRAVE_DEV     = "brave-browser-dev"
+	BRAVE         = "brave-browser"
 )
 
 const HELP = `Usage: go run main.go <browser> <workflow> <search>`
@@ -27,26 +31,36 @@ func main() {
 	}
 
 	browser := args[0]
-	worflow := args[1]
+	workflow := args[1]
 
-	userWorkflow := defaultWorkflows.GetWorkflow(worflow)
+	userWorkflow := defaultWorkflows.GetWorkflow(workflow)
 
 	search := args[2:]
 
 	switch browser {
-	case "chrome":
-		// exec.Command("google-chrome", google_url).Start()
-	case "firefox":
-		// exec.Command("firefox", google_url).Start()
-	case "safari":
-		// exec.Command("open", google_url).Start()
+	case CHROME:
+		runWorkflow(CHROME, workflow, userWorkflow, search)
+	case FIREFOX:
+		runWorkflow(FIREFOX, workflow, userWorkflow, search)
+	case BRAVE:
+		runWorkflow(BRAVE, workflow, userWorkflow, search)
 	case BRAVE_NIGHTLY:
-		if userWorkflow.Name == worflow {
-			for _, engine := range userWorkflow.Engines {
-				exec.Command(BRAVE_NIGHTLY, engine.SearchQuery+strings.Join(search, "+")).Start()
-			}
-		}
+		runWorkflow(BRAVE_NIGHTLY, workflow, userWorkflow, search)
+	case BRAVE_DEV:
+
 	default:
 		fmt.Println("Unknown browser")
 	}
+}
+
+func runWorkflow(browser string, enteredWorkflow string, userWorkflow workflows.Workflow, search []string) {
+	if userWorkflow.Name == enteredWorkflow {
+		for _, engine := range userWorkflow.Engines {
+			openBrowser(browser, engine.SearchQuery+strings.Join(search, "+"))
+		}
+	}
+}
+
+func openBrowser(browser string, url string) {
+	exec.Command(browser, url).Start()
 }
